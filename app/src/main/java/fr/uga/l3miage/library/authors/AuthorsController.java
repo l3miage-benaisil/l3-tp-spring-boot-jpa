@@ -6,6 +6,8 @@ import fr.uga.l3miage.library.books.BooksMapper;
 import fr.uga.l3miage.library.service.AuthorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,8 +47,15 @@ public class AuthorsController {
         return null;
     }
 
-    public AuthorDTO newAuthor(AuthorDTO author) {
-        return null;
+    @PostMapping("/authors")
+    public AuthorDTO newAuthor(@RequestBody AuthorDTO author) {
+
+        //create a new author
+        Author newAuthor = authorMapper.dtoToEntity(author);
+        newAuthor.setFullName(author.fullName());
+        authorService.save(newAuthor);
+
+        return authorMapper.entityToDTO(newAuthor);
     }
 
     public AuthorDTO updateAuthor(AuthorDTO author, Long id) {
