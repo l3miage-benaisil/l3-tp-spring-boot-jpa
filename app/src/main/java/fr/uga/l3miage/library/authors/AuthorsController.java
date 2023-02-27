@@ -5,6 +5,7 @@ import fr.uga.l3miage.library.books.BookDTO;
 import fr.uga.l3miage.library.books.BooksMapper;
 import fr.uga.l3miage.library.service.AuthorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -67,20 +68,17 @@ public class AuthorsController {
         try{
             Author existingAuthor = authorService.get(id);
             existingAuthor.setFullName(author.fullName());
-            //authorService.save(existingAuthor);
             return authorMapper.entityToDTO(existingAuthor);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-
-
-
         return null;
     }
 
+    @DeleteMapping("/authors/{id}")
     public void deleteAuthor(Long id) {
-        // unimplemented... yet!
+
     }
 
     public Collection<BookDTO> books(Long authorId) {
