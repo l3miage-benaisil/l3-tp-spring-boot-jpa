@@ -10,6 +10,7 @@ import fr.uga.l3miage.library.service.BookService;
 import fr.uga.l3miage.library.service.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +28,7 @@ public class BooksController {
 
     private final BookService bookService;
     private final BooksMapper booksMapper;
-    //import des services et mapper d'auteur
+    // import des services et mapper d'auteur
     private final AuthorService authorService;
 
     @Autowired
@@ -97,20 +98,22 @@ public class BooksController {
         return booksMapper.entityToDTO(newBook);
     }
 
-
     // mettre à jour un livre
-    @PutMapping("/authors/{authorId}/books/{id}")
+    @PutMapping("/books/{id}")
     public BookDTO updateBook(Long authorId, BookDTO book) {
-        // attention BookDTO.id() doit être égale à id, sinon la requête utilisateur est
-        // mauvaise
-
-        //mise à jour d'un auteur existant par son id
-       
+        
         return null;
     }
 
-    public void deleteBook(Long id) {
+    // supprimer un livre
+    @DeleteMapping("/books/{id}")
+    public void deleteBook(@PathVariable Long id) {
 
+        try {
+            bookService.delete(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void addAuthor(Long authorId, AuthorDTO author) {
