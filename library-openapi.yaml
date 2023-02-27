@@ -266,7 +266,7 @@ components:
       example:
         title: Les Misérables
         isbn: 9782266199261
-        editor: Pocket
+        publisher: Pocket
         year: 2009
         language: french
     Book:
@@ -289,7 +289,7 @@ components:
         id: 1
         title: Les Misérables
         isbn: 9782266199261
-        editor: Pocket
+        publisher: Pocket
         year: 2009
         language: FRENCH
         authors:
