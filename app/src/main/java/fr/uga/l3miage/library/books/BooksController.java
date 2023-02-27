@@ -5,6 +5,7 @@ import fr.uga.l3miage.library.authors.AuthorDTO;
 import fr.uga.l3miage.library.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,7 +40,18 @@ public class BooksController {
 
     }
 
-    public BookDTO book(Long id) {
+    //trouver un livre par son id
+    @GetMapping("/books/{id}")
+    public BookDTO book(@PathVariable Long id) {
+        Book book;
+        try {
+            book = bookService.get(id);
+            return booksMapper.entityToDTO(book);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
         return null;
     }
 
