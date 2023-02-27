@@ -100,8 +100,26 @@ public class BooksController {
 
     // mettre à jour un livre
     @PutMapping("/books/{id}")
-    public BookDTO updateBook(Long authorId, BookDTO book) {
+    public BookDTO updateBook(@PathVariable Long id, @RequestBody BookDTO book) {
+        // attention BookDTO.id() doit être égale à id, sinon la requête utilisateur est
+        // mauvaise
+
+        Book newBook = booksMapper.dtoToEntity(book);
         
+         
+         
+        try {
+            Book existingBook = bookService.get(id);
+            existingBook.setTitle(newBook.getTitle());
+            existingBook.setIsbn(newBook.getIsbn());
+            existingBook.setPublisher(newBook.getPublisher());
+            existingBook.setLanguage(Language.valueOf(newBook.getLanguage().toString().toUpperCase()));
+            existingBook.setYear(newBook.getYear());
+            return booksMapper.entityToDTO(existingBook);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+ 
         return null;
     }
 
