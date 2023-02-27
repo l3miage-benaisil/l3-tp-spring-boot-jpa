@@ -6,7 +6,9 @@ import fr.uga.l3miage.library.books.BooksMapper;
 import fr.uga.l3miage.library.service.AuthorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -57,9 +59,23 @@ public class AuthorsController {
 
         return authorMapper.entityToDTO(newAuthor);
     }
-
-    public AuthorDTO updateAuthor(AuthorDTO author, Long id) {
+    @PutMapping("/authors/{id}")
+    public AuthorDTO updateAuthor(@RequestBody AuthorDTO author, @PathVariable Long id) {
         // attention AuthorDTO.id() doit être égale à id, sinon la requête utilisateur est mauvaise
+
+        // update an existing author
+        try{
+            Author existingAuthor = authorService.get(id);
+            existingAuthor.setFullName(author.fullName());
+            //authorService.save(existingAuthor);
+            return authorMapper.entityToDTO(existingAuthor);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+
+
         return null;
     }
 
