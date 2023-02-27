@@ -49,9 +49,20 @@ public class AuthorsController {
                 .toList();
     }
 
-    public AuthorDTO author(Long id) {
-        return null;
-    }
+    @GetMapping("/authors/{id}")
+    public AuthorDTO author(@PathVariable Long id) {
+
+        Author author;
+        try {
+            author = authorService.get(id);
+            return authorMapper.entityToDTO(author); 
+
+        } catch (EntityNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null; 
+     }
 
     @PostMapping("/authors")
     public AuthorDTO newAuthor(@RequestBody AuthorDTO author) {
@@ -86,11 +97,6 @@ public class AuthorsController {
         } catch ( DeleteAuthorException | EntityNotFoundException e) {
             e.printStackTrace();
         }
-
-        
-        
-
-        
 
     }
 
