@@ -55,31 +55,33 @@ public class AuthorsController {
         Author author;
         try {
             author = authorService.get(id);
-            return authorMapper.entityToDTO(author); 
+            return authorMapper.entityToDTO(author);
 
         } catch (EntityNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        return null; 
-     }
+        return null;
+    }
 
     @PostMapping("/authors")
     public AuthorDTO newAuthor(@RequestBody AuthorDTO author) {
 
-        //create a new author
+        // create a new author
         Author newAuthor = authorMapper.dtoToEntity(author);
         newAuthor.setFullName(author.fullName());
         authorService.save(newAuthor);
 
         return authorMapper.entityToDTO(newAuthor);
     }
+
     @PutMapping("/authors/{id}")
     public AuthorDTO updateAuthor(@RequestBody AuthorDTO author, @PathVariable Long id) {
-        // attention AuthorDTO.id() doit être égale à id, sinon la requête utilisateur est mauvaise
+        // attention AuthorDTO.id() doit être égale à id, sinon la requête utilisateur
+        // est mauvaise
 
         // update an existing author
-        try{
+        try {
             Author existingAuthor = authorService.get(id);
             existingAuthor.setFullName(author.fullName());
             return authorMapper.entityToDTO(existingAuthor);
@@ -94,14 +96,58 @@ public class AuthorsController {
     public void deleteAuthor(@PathVariable Long id) {
         try {
             authorService.delete(id);
-        } catch ( DeleteAuthorException | EntityNotFoundException e) {
+        } catch (DeleteAuthorException | EntityNotFoundException e) {
             e.printStackTrace();
         }
 
     }
 
-    public Collection<BookDTO> books(Long authorId) {
-        return Collections.emptyList();
+    @GetMapping("/authors/{authorId}/books")
+    public Collection<BookDTO> books(@PathVariable Long authorId,
+            @RequestParam(value = "q", required = false) String q) {
+        
+        Collection<BookDTO> res = Collections.emptyList();
+
+        Author author;
+        if (q == null) {
+
+            try {
+                author = authorService.get(authorId);
+                authorMapper.entityToDTO(author);
+                if (author.getBooks() == null) {
+                    System.out.println("author.getBooks() is null");
+                    return Collections.emptyList();
+                } else {
+                    res= author.getBooks().stream()
+                            .map(booksMapper::entityToDTO)
+                            .toList();
+                }
+
+            } catch (EntityNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else {
+            
+            try {
+                author = authorService.get(authorId);
+                authorMapper.entityToDTO(author);
+                if (author.getBooks() == null) {
+                    System.out.println("author.getBooks() is null");
+                    res= Collections.emptyList();
+                } else {
+                    res= author.getBooks().stream()
+                            .filter(book -> book.getTitle().contains(q))
+                            .map(booksMapper::entityToDTO)
+                            .toList();
+                }
+
+            } catch (EntityNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        return res;
     }
 
 }
