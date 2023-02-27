@@ -36,6 +36,7 @@ public class AuthorsController {
         this.booksMapper = booksMapper;
     }
 
+    //liste des auteurs existants
     @GetMapping("/authors")
     public Collection<AuthorDTO> authors(@RequestParam(value = "q", required = false) String query) {
         Collection<Author> authors;
@@ -49,6 +50,7 @@ public class AuthorsController {
                 .toList();
     }
 
+    //chercher un auteur par son id
     @GetMapping("/authors/{id}")
     public AuthorDTO author(@PathVariable Long id) {
 
@@ -64,10 +66,11 @@ public class AuthorsController {
         return null;
     }
 
+    //créer un auteur
     @PostMapping("/authors")
     public AuthorDTO newAuthor(@RequestBody AuthorDTO author) {
 
-        // create a new author
+        // créer un nouvel auteur
         Author newAuthor = authorMapper.dtoToEntity(author);
         newAuthor.setFullName(author.fullName());
         authorService.save(newAuthor);
@@ -77,10 +80,7 @@ public class AuthorsController {
 
     @PutMapping("/authors/{id}")
     public AuthorDTO updateAuthor(@RequestBody AuthorDTO author, @PathVariable Long id) {
-        // attention AuthorDTO.id() doit être égale à id, sinon la requête utilisateur
-        // est mauvaise
-
-        // update an existing author
+        //mise à jour d'un auteur existant par son id
         try {
             Author existingAuthor = authorService.get(id);
             existingAuthor.setFullName(author.fullName());
@@ -92,6 +92,7 @@ public class AuthorsController {
         return null;
     }
 
+    //supprimer un auteur par son id
     @DeleteMapping("/authors/{id}")
     public void deleteAuthor(@PathVariable Long id) {
         try {
@@ -102,6 +103,7 @@ public class AuthorsController {
 
     }
 
+    //liste des livres d'un auteur par son id et un paramètre de recherche q (optionnel) pour filtrer par titre
     @GetMapping("/authors/{authorId}/books")
     public Collection<BookDTO> books(@PathVariable Long authorId,
             @RequestParam(value = "q", required = false) String q) {
