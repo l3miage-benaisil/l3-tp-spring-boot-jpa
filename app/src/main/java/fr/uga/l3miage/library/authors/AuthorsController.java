@@ -6,8 +6,10 @@ import fr.uga.l3miage.library.books.BooksMapper;
 import fr.uga.l3miage.library.service.AuthorService;
 import fr.uga.l3miage.library.service.DeleteAuthorException;
 import fr.uga.l3miage.library.service.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -52,30 +55,47 @@ public class AuthorsController {
 
     //chercher un auteur par son id
     @GetMapping("/authors/{id}")
-    public AuthorDTO author(@PathVariable Long id) {
+    public AuthorDTO author(@PathVariable Long id,HttpServletResponse response) {
 
         Author author;
         try {
+            if(id<0){
+                id=id*-1;
+            }
             author = authorService.get(id);
             return authorMapper.entityToDTO(author);
 
         } catch (EntityNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            response.setStatus(404); // if no exception thrown setStatus to 201
         }
         return null;
     }
 
     //créer un auteur
     @PostMapping("/authors")
-    public AuthorDTO newAuthor(@RequestBody AuthorDTO author) {
-
+    public AuthorDTO newAuthor(@RequestBody AuthorDTO author, HttpServletResponse response) {
+        
         // créer un nouvel auteur
         Author newAuthor = authorMapper.dtoToEntity(author);
-        newAuthor.setFullName(author.fullName());
-        authorService.save(newAuthor);
+        
+        if(newAuthor.getFullName().toString().trim() ==""){
+            response.setStatus(400); // if no exception thrown setStatus to 201
+            return null;
+        }else{
+            newAuthor.setFullName(author.fullName());
+            authorService.save(newAuthor);
+            response.setStatus(201); // if no exception thrown setStatus to 201
+            return authorMapper.entityToDTO(newAuthor);
 
-        return authorMapper.entityToDTO(newAuthor);
+        }
+        
+
+
+
+//        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "the author was not found");
+    
     }
 
     @PutMapping("/authors/{id}")
@@ -94,9 +114,10 @@ public class AuthorsController {
 
     //supprimer un auteur par son id
     @DeleteMapping("/authors/{id}")
-    public void deleteAuthor(@PathVariable Long id) {
+    public void deleteAuthor(@PathVariable Long id, HttpServletResponse response) {
         try {
             authorService.delete(id);
+            response.setStatus(204); // if no exception thrown setStatus to 204
         } catch (DeleteAuthorException | EntityNotFoundException e) {
             e.printStackTrace();
         }
@@ -117,7 +138,6 @@ public class AuthorsController {
                 author = authorService.get(authorId);
                 authorMapper.entityToDTO(author);
                 if (author.getBooks() == null) {
-                    System.out.println("author.getBooks() is null");
                     return Collections.emptyList();
                 } else {
                     res= author.getBooks().stream()
@@ -135,7 +155,6 @@ public class AuthorsController {
                 author = authorService.get(authorId);
                 authorMapper.entityToDTO(author);
                 if (author.getBooks() == null) {
-                    System.out.println("author.getBooks() is null");
                     res= Collections.emptyList();
                 } else {
                     res= author.getBooks().stream()
