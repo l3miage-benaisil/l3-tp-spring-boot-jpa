@@ -1,12 +1,13 @@
 package fr.uga.l3miage.library.authors;
 
 import fr.uga.l3miage.data.domain.Author;
+import fr.uga.l3miage.data.domain.Book;
 import fr.uga.l3miage.library.books.BookDTO;
 import fr.uga.l3miage.library.books.BooksMapper;
+import fr.uga.l3miage.library.service.BookService;
+
 import fr.uga.l3miage.library.service.AuthorService;
-import fr.uga.l3miage.library.service.DeleteAuthorException;
 import fr.uga.l3miage.library.service.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -31,12 +33,14 @@ public class AuthorsController {
     private final AuthorService authorService;
     private final AuthorMapper authorMapper;
     private final BooksMapper booksMapper;
+    private final BookService bookService;
 
     @Autowired
-    public AuthorsController(AuthorService authorService, AuthorMapper authorMapper, BooksMapper booksMapper) {
+    public AuthorsController(AuthorService authorService, AuthorMapper authorMapper, BooksMapper booksMapper, BookService bookService) {
         this.authorService = authorService;
         this.authorMapper = authorMapper;
         this.booksMapper = booksMapper;
+        this.bookService= bookService;
     }
 
     //liste des auteurs existants
@@ -55,7 +59,8 @@ public class AuthorsController {
 
     //chercher un auteur par son id
     @GetMapping("/authors/{id}")
-    public AuthorDTO author(@PathVariable Long id,HttpServletResponse response) {
+    @ResponseStatus(HttpStatus.OK)
+    public AuthorDTO author(@PathVariable Long id) {
 
         Author author;
         try {
@@ -66,36 +71,26 @@ public class AuthorsController {
             return authorMapper.entityToDTO(author);
 
         } catch (EntityNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            response.setStatus(404); // if no exception thrown setStatus to 201
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "the author was not found");
         }
-        return null;
     }
 
     //créer un auteur
     @PostMapping("/authors")
-    public AuthorDTO newAuthor(@RequestBody AuthorDTO author, HttpServletResponse response) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public AuthorDTO newAuthor(@RequestBody AuthorDTO author) {
         
         // créer un nouvel auteur
         Author newAuthor = authorMapper.dtoToEntity(author);
         
         if(newAuthor.getFullName().toString().trim() ==""){
-            response.setStatus(400); // if no exception thrown setStatus to 201
-            return null;
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }else{
             newAuthor.setFullName(author.fullName());
             authorService.save(newAuthor);
-            response.setStatus(201); // if no exception thrown setStatus to 201
             return authorMapper.entityToDTO(newAuthor);
 
-        }
-        
-
-
-
-//        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "the author was not found");
-    
+        }    
     }
 
     @PutMapping("/authors/{id}")
@@ -114,14 +109,29 @@ public class AuthorsController {
 
     //supprimer un auteur par son id
     @DeleteMapping("/authors/{id}")
-    public void deleteAuthor(@PathVariable Long id, HttpServletResponse response) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAuthor(@PathVariable("id") Long id) {
         try {
-            authorService.delete(id);
-            response.setStatus(204); // if no exception thrown setStatus to 204
-        } catch (DeleteAuthorException | EntityNotFoundException e) {
-            e.printStackTrace();
+            Author aut = authorService.get(id);
+        }catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
+        try {
+            
+            for(Book book : authorService.get(id).getBooks()){
+                if(book.getAuthors().size() > 1){
+                    bookService.delete(book.getId());
+                }
+            }
+            
+            
+            this.authorService.delete(id);
+
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+       
     }
 
     //liste des livres d'un auteur par son id et un paramètre de recherche q (optionnel) pour filtrer par titre
