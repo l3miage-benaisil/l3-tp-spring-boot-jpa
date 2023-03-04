@@ -36,14 +36,15 @@ public class AuthorsController {
     private final BookService bookService;
 
     @Autowired
-    public AuthorsController(AuthorService authorService, AuthorMapper authorMapper, BooksMapper booksMapper, BookService bookService) {
+    public AuthorsController(AuthorService authorService, AuthorMapper authorMapper, BooksMapper booksMapper,
+            BookService bookService) {
         this.authorService = authorService;
         this.authorMapper = authorMapper;
         this.booksMapper = booksMapper;
-        this.bookService= bookService;
+        this.bookService = bookService;
     }
 
-    //liste des auteurs existants
+    // liste des auteurs existants
     @GetMapping("/authors")
     public Collection<AuthorDTO> authors(@RequestParam(value = "q", required = false) String query) {
         Collection<Author> authors;
@@ -57,15 +58,15 @@ public class AuthorsController {
                 .toList();
     }
 
-    //chercher un auteur par son id
+    // chercher un auteur par son id
     @GetMapping("/authors/{id}")
     @ResponseStatus(HttpStatus.OK)
     public AuthorDTO author(@PathVariable Long id) {
 
         Author author;
         try {
-            if(id<0){
-                id=id*-1;
+            if (id < 0) {
+                id = id * -1;
             }
             author = authorService.get(id);
             return authorMapper.entityToDTO(author);
@@ -75,70 +76,70 @@ public class AuthorsController {
         }
     }
 
-    //créer un auteur
+    // créer un nouvel auteur
     @PostMapping("/authors")
     @ResponseStatus(HttpStatus.CREATED)
     public AuthorDTO newAuthor(@RequestBody AuthorDTO author) {
-        
+
         // créer un nouvel auteur
         Author newAuthor = authorMapper.dtoToEntity(author);
-        
-        if(newAuthor.getFullName().toString().trim() ==""){
+
+        if (newAuthor.getFullName().toString().trim() == "") {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }else{
+        } else {
             newAuthor.setFullName(author.fullName());
             authorService.save(newAuthor);
             return authorMapper.entityToDTO(newAuthor);
 
-        }    
+        }
     }
 
+    // mettre à jour un auteur existant par son id
     @PutMapping("/authors/{id}")
     public AuthorDTO updateAuthor(@RequestBody AuthorDTO author, @PathVariable Long id) {
-        //mise à jour d'un auteur existant par son id
+        // mise à jour d'un auteur existant par son id
         try {
             Author existingAuthor = authorService.get(id);
             existingAuthor.setFullName(author.fullName());
             return authorMapper.entityToDTO(existingAuthor);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "the author was not found");
         }
 
-        return null;
     }
 
-    //supprimer un auteur par son id
+    // supprimer un auteur par son id
     @DeleteMapping("/authors/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAuthor(@PathVariable("id") Long id) {
         try {
             Author aut = authorService.get(id);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         try {
-            
-            for(Book book : authorService.get(id).getBooks()){
-                if(book.getAuthors().size() > 1){
+
+            for (Book book : authorService.get(id).getBooks()) {
+                if (book.getAuthors().size() > 1) {
                     bookService.delete(book.getId());
                 }
             }
-            
-            
+
             this.authorService.delete(id);
 
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-       
+
     }
 
-    //liste des livres d'un auteur par son id et un paramètre de recherche q (optionnel) pour filtrer par titre
+    // liste des livres d'un auteur par son id et un paramètre de recherche q
+    // (optionnel) pour filtrer par titre
     @GetMapping("/authors/{authorId}/books")
     public Collection<BookDTO> books(@PathVariable Long authorId,
             @RequestParam(value = "q", required = false) String q) {
-        
+
         Collection<BookDTO> res = Collections.emptyList();
 
         Author author;
@@ -150,7 +151,7 @@ public class AuthorsController {
                 if (author.getBooks() == null) {
                     return Collections.emptyList();
                 } else {
-                    res= author.getBooks().stream()
+                    res = author.getBooks().stream()
                             .map(booksMapper::entityToDTO)
                             .toList();
                 }
@@ -160,14 +161,14 @@ public class AuthorsController {
                 e.printStackTrace();
             }
         } else {
-            
+
             try {
                 author = authorService.get(authorId);
                 authorMapper.entityToDTO(author);
                 if (author.getBooks() == null) {
-                    res= Collections.emptyList();
+                    res = Collections.emptyList();
                 } else {
-                    res= author.getBooks().stream()
+                    res = author.getBooks().stream()
                             .filter(book -> book.getTitle().contains(q))
                             .map(booksMapper::entityToDTO)
                             .toList();

@@ -77,7 +77,7 @@ public class BooksController {
         return null;
     }
 
-    // creer un nouveau livre
+    // creer un nouveau livre 
     @PostMapping("/authors/{authorId}/books")
     @ResponseStatus(HttpStatus.CREATED)
     public BookDTO newBook(@PathVariable Long authorId, @RequestBody BookDTO book) {
@@ -124,13 +124,11 @@ public class BooksController {
 
     }
 
-    // mettre à jour un livre
+    // mettre à jour un livre existant
     @PutMapping("/books/{id}")
     @ResponseStatus(HttpStatus.OK)
     public BookDTO updateBook(@PathVariable Long id, @RequestBody BookDTO book) {
-        // attention BookDTO.id() doit être égale à id, sinon la requête utilisateur est
-        // mauvaise
-
+     
         Book newBook = booksMapper.dtoToEntity(book);
 
         if (book.id() == id) {
@@ -153,7 +151,7 @@ public class BooksController {
 
     }
 
-    // supprimer un livre
+    // supprimer un livre existant par son id
     @DeleteMapping("/books/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteBook(@PathVariable Long id) {
@@ -165,6 +163,7 @@ public class BooksController {
         }
     }
 
+    //mettre à jour un auteur d'un livre existant par son id
     @PutMapping("/books/{id}/authors")
     @ResponseStatus(HttpStatus.OK)
     public BookDTO addAuthor(@PathVariable("id") Long bookId, @RequestBody AuthorDTO author) {
